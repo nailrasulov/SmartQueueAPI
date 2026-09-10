@@ -29,36 +29,36 @@ namespace SmartQueue.Infrastructure.Repositories.Implementations
             return customer;
         }
 
-        public async Task<bool> CompleteCustomerAsync(int id, CancellationToken cancellationToken)
+        public async Task<Customer?> CompleteCustomerAsync(int id, CancellationToken cancellationToken)
         {
             var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-            if (customer == null)
+            if (customer == null || (customer.Status != CustomerStatus.Serving))
             {
-                return false;   
-            }
+                return null;
+            }    
 
             customer.Status = CustomerStatus.Completed;
-            customer.CompletedAt = DateTime.UtcNow;  
+            customer.CompletedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync(cancellationToken); 
-            return true;
+            await _context.SaveChangesAsync(cancellationToken);
+            return customer;
         }
 
         public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            var customer = await _context.Customers.FirstOrDefaultAsync(c=>c.Id == id, cancellationToken);
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
             if (customer == null)
             {
                 return false;
             }
-            _context.Customers.Remove(customer); 
+            _context.Customers.Remove(customer);
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
 
         public async Task<Customer?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var customer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(c=>c.Id==id, cancellationToken);
+            var customer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
             return customer;
         }
 
@@ -76,7 +76,7 @@ namespace SmartQueue.Infrastructure.Repositories.Implementations
             }
 
             nextCustomer.Status = CustomerStatus.Serving;
-            await _context.SaveChangesAsync(cancellationToken); 
+            await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             return nextCustomer;
@@ -84,12 +84,12 @@ namespace SmartQueue.Infrastructure.Repositories.Implementations
 
         public async Task<int> GetPositionInQueueAsync(int id, CancellationToken cancellationToken = default)
         {
-            var targetCustomer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);   
+            var targetCustomer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
-            if(targetCustomer == null || targetCustomer.Status != CustomerStatus.Waiting)
+            if (targetCustomer == null || targetCustomer.Status != CustomerStatus.Waiting)
             {
                 return -1;
-            }       
+            }
 
             var position = await _context.Customers
                 .AsNoTracking()
@@ -102,9 +102,9 @@ namespace SmartQueue.Infrastructure.Repositories.Implementations
         public Task<List<Customer>> GetWaitingCustomersAsync(CancellationToken cancellationToken = default)
         {
             var customers = _context.Customers.AsNoTracking()
-                                        .Where(c=>c.Status== CustomerStatus.Waiting) 
-                                        .OrderBy(c=> c.CreatedAt)   
-                                        .ToListAsync(cancellationToken);  
+                                        .Where(c => c.Status == CustomerStatus.Waiting)
+                                        .OrderBy(c => c.CreatedAt)
+                                        .ToListAsync(cancellationToken);
             return customers;
         }
     }

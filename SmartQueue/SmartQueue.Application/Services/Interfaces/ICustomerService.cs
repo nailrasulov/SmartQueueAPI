@@ -14,6 +14,7 @@ namespace SmartQueue.Application.Services.Interfaces
         Task<Result<List<CustomerResponseDto>>> GetWaitingCustomersAsync(CancellationToken cancellationToken = default);
         Task<Result<CustomerResponseDto>> GetCustomerByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<Result<CustomerResponseDto>> CallNextCustomerAsync(CancellationToken cancellationToken = default);
+        Task<Result<CustomerResponseDto>> CompleteCustomerAsync(int id, CancellationToken cancellationToken = default);
         Task<Result> DeleteCustomerAsync(int id, CancellationToken cancellationToken = default);    
     }
 }

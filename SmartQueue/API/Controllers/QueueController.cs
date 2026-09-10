@@ -50,6 +50,14 @@ namespace API.Controllers
             return HandleResult(result);
         }
 
+        [HttpPost("complete/{id}")]
+        public async Task<IActionResult> CompleteCustomer(int id, CancellationToken cancellationToken)
+        {
+            var result = await _service.CompleteCustomerAsync(id, cancellationToken);
+
+            return HandleResult(result);
+        }
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteCustomer(int id, CancellationToken cancellationToken)
         {

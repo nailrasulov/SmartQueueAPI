@@ -19,7 +19,7 @@ namespace SmartQueue.Infrastructure.Repositories.Interfaces
 
         Task<Customer?> GetNextWaitingAndServeCustomerAsync(CancellationToken cancellationToken = default);
 
-        Task<bool> CompleteCustomerAsync(int id, CancellationToken cancellationToken);
+        Task<Customer?> CompleteCustomerAsync(int id, CancellationToken cancellationToken);
 
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);    
     }

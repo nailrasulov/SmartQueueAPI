@@ -19,12 +19,24 @@ namespace SmartQueue.Application.Services.Implementations
         public async Task<Result<CustomerResponseDto>> CallNextCustomerAsync(CancellationToken cancellationToken = default)
         {
             var nextCustomer = await _repository.GetNextWaitingAndServeCustomerAsync(cancellationToken);
-            if(nextCustomer == null)
+            if (nextCustomer == null)
             {
                 return Result.Failure<CustomerResponseDto>("Novbede gozleyen musteri yoxdur.");
             }
 
             return Result.Success(MapToDto(nextCustomer, null));
+        }
+
+        public async Task<Result<CustomerResponseDto>> CompleteCustomerAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var completedCustomer = await _repository.CompleteCustomerAsync(id, cancellationToken);
+
+            if (completedCustomer == null )
+            {
+                return Result.Failure<CustomerResponseDto>("Musteri tapilmadi ve ya (Serving) xidmetde deyil");
+            }
+
+            return Result.Success(MapToDto(completedCustomer, null));
         }
 
         public async Task<Result<CustomerResponseDto>> CreateCustomerAsync(CreateCustomerRequestDto dto, CancellationToken cancellationToken = default)
@@ -33,7 +45,7 @@ namespace SmartQueue.Application.Services.Implementations
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
                 return Result.Failure<CustomerResponseDto>("Musteri adi bos ola bilmez.");
-            }   
+            }
 
             var customer = new Customer
             {
@@ -43,28 +55,28 @@ namespace SmartQueue.Application.Services.Implementations
             };
 
             var createdCustomer = await _repository.AddAsync(customer, cancellationToken);
-            var position = await _repository.GetPositionInQueueAsync(createdCustomer.Id, cancellationToken);  
+            var position = await _repository.GetPositionInQueueAsync(createdCustomer.Id, cancellationToken);
 
-            return Result.Success(MapToDto(createdCustomer, position));    
+            return Result.Success(MapToDto(createdCustomer, position));
         }
 
         public async Task<Result> DeleteCustomerAsync(int id, CancellationToken cancellationToken = default)
         {
             var result = await _repository.DeleteAsync(id, cancellationToken);
-            if(!result)
+            if (!result)
             {
                 return Result.Failure($"Musteri tapilmadi ve ya siline bilmedi. Id: {id}");
-            }   
+            }
             return Result.Success();
         }
 
         public async Task<Result<CustomerResponseDto>> GetCustomerByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var customer = await _repository.GetByIdAsync(id,cancellationToken);
-            if(customer == null)
+            var customer = await _repository.GetByIdAsync(id, cancellationToken);
+            if (customer == null)
             {
                 return Result.Failure<CustomerResponseDto>("Musteri tapilmadi.");
-            }   
+            }
 
             int? position = customer.Status == CustomerStatus.Waiting ? await _repository.GetPositionInQueueAsync(id, cancellationToken) : null;
 
@@ -74,11 +86,11 @@ namespace SmartQueue.Application.Services.Implementations
         public async Task<Result<List<CustomerResponseDto>>> GetWaitingCustomersAsync(CancellationToken cancellationToken = default)
         {
             var customers = await _repository.GetWaitingCustomersAsync(cancellationToken);
-            var dtos = new List<CustomerResponseDto>(); 
+            var dtos = new List<CustomerResponseDto>();
 
-            for(int i=0; i<customers.Count; i++)
+            for (int i = 0; i < customers.Count; i++)
             {
-                dtos.Add(MapToDto(customers[i], i + 1));    
+                dtos.Add(MapToDto(customers[i], i + 1));
             }
 
             return Result.Success(dtos);
@@ -88,10 +100,10 @@ namespace SmartQueue.Application.Services.Implementations
         {
             return new CustomerResponseDto
             {
-                Id = entity.Id, 
+                Id = entity.Id,
                 Name = entity.Name,
                 CreatedAt = entity.CreatedAt,
-                CompletedAt = entity.CompletedAt,   
+                CompletedAt = entity.CompletedAt,
                 Status = entity.Status.ToString(),
                 QueuePosition = position
             };
