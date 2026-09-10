@@ -1,0 +1,16 @@
+bin/
+obj/
+out/
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+appsettings.Development.json
+
+*.log
+*.tmp
+logs/
